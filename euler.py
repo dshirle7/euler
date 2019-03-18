@@ -1,6 +1,7 @@
 def introot(n):
     return int(int(n) ** 0.5)
 
+
 def factorial(n):
     n = int(n)
     if n < 0:
@@ -30,7 +31,7 @@ def list_fibonacci(n, max=0):
         raise ValueError("list_fibonacci() received an 'n' less than 1. \
                          'n' is the number of Fibonacci numbers to return.")
     if max != 0 and max < 1:
-        raise ValueError("list_fibonacci() received a max Fibonacci value less than 2.")
+        raise ValueError("list_fibonacci() received a max Fibonacci value less than 1.")
 
     fiblist = []
     for num in range(1, n+1):
@@ -80,6 +81,7 @@ def list_primes(n):
                 primes.append(number)
                 if len(primes) == n: # If we just added the nth prime, we're done
                     return primes
+
     return primes
 
 
@@ -122,8 +124,9 @@ def is_palindrome(n):
     return True
 
 
-def factorize(n):
+def prime_factorize(n):
     # Returns a list of the prime factors of a number
+    # Retains -1 as a factor
     try:
         divide_me = n
         factors = []
@@ -148,13 +151,14 @@ def factorize(n):
         if n in others:
             return [n]
 
-        return ValueError("factorize() received a number it can't handle,\
+        return ValueError("prime_factorize() received a number it can't handle, \
                            likely a non-integer.")
+
 
 def lcm_two(n1, n2):
     # Returns the least common multiple of two inputs
-    list1 = factorize(n1)
-    list2 = factorize(n2)
+    list1 = prime_factorize(n1)
+    list2 = prime_factorize(n2)
     factordict = {}
 
     # Add each factor and n1's count to the dictionary
@@ -170,10 +174,11 @@ def lcm_two(n1, n2):
             factordict[factor] = list2.count(factor)
 
     lcm = 1
-    for key, value in factordict.items():
-        lcm *= int(key) ** int(value)
+    for prime, exponent in factordict.items():
+        lcm *= int(prime) ** int(exponent)
 
     return lcm
+
 
 def lcm(list_of_numbers):
     # Returns the least common multiple of all numbers in a list of any size
@@ -185,9 +190,104 @@ def lcm(list_of_numbers):
     if len(list_of_numbers) == 2:
         return peel
 
-    # Recursive
+    # Recursive: pass one fewer argument to lcm()
     newlist = list_of_numbers[2:]
     newlist.append(peel)
     return lcm(newlist)
 
 # Two functions included in euler006.py: sum_of_squares() and square_of_sum()
+
+def string_multiplier(string_of_digits):
+    # Multiply each digit in a string
+    factors = [int(number) for number in string_of_digits]
+    product = 1
+    for factor in factors:
+        product *= factor
+
+    return product
+
+def list_factors(n):
+    # Returns a list of all factors of a number
+    # If a number is a factor, it only gets listed once
+    # Retains -1
+    if n == 0 or n == 1:
+        return [n]
+
+    factors = []
+    if n < 0:
+        factors.append(-1)
+
+    # Here we only check numbers up to its square root
+    for integer in range(1, introot(abs(n))):
+        if n % integer == 0:
+            factors.append(integer)
+            factors.append(int(n/integer))
+
+    return factors
+
+def is_pythag(a, b, c):
+    # Boolean to see if three integers constitute a Pythagorean triple
+    integers = sorted([a, b, c])
+    if integers[0] ** 2 + integers[1] ** 2 == integers[2] ** 2:
+        return True
+
+    return False
+
+
+def find_triple_that_sums(n):
+    # Find the first Pythagorean triple that sums to n
+
+    # Range start: The smallest any side could be is equal to the others
+    # Range stop: The largest side of a triange is less than the sum of the others
+    for side1 in range(int(n/3), int(n/2)):
+        # Cut the remaining amount of n into two equal parts
+        # side2 will always be the smaller part, so only cover the first half
+        for side2 in range(1, int((n - side1)/2)):
+            # side3 is whatever amound of n is left
+            side3 = n - side1 - side2
+            if is_pythag(side1, side2, side3):
+                return [side1, side2, side3]
+
+    print (f"No triples found that sum to {n}")
+    return [0, 0, 0]
+
+
+def list_triangulars(n):
+    # Returns a list of triangular numbers under a certain value
+    triangulars = [1]
+
+    for term in range(2, n):
+        triangulars.append(triangulars[term-2] + term)
+
+    return triangulars
+
+# Reusable non-function code for matrix operations included in euler011.py
+
+def collatz(n):
+    # Return one iteration of the Collatz recursive function
+    if n < 2:
+        raise ValueError("collatz() received a number less than 2.")
+    if n % 2 == 0:
+        return int(n/2)
+    return 3 * n + 1
+
+def longest_collatz_under(n):
+    # Runs the Collatz function on each number under n
+    # Returns the n that produced the longest chain AND the length of the chain
+    if n < 2:
+        raise ValueError("longest_collatz_under() received a number less than 2.")
+
+    record = 0
+    record_holder = 0
+    for number in range(1, n): 
+        chain = 0
+        collatz_me = number
+        while collatz_me != 1:
+            collatz_me = collatz(collatz_me)
+            chain += 1
+
+        if chain > record:
+            record = chain
+            record_holder = number
+
+    return (record_holder, record)
